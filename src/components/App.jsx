@@ -1,16 +1,54 @@
-export const App = () => {
+import { Route, Routes } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { ContactBook } from './ContactBook/ContactBook';
+import { HeaderEl } from 'components/HeaderEl/HeaderEl';
+import { NotFound } from './NotFound/NotFound';
+import { RegisterForm } from './RegisterForm/RegisterForm';
+import { LogIn } from './LogIn/LogIn';
+import { HomePage } from './HomePage/HomePage';
+import { refreshUser } from 'redux/auth/authOperations';
+import { RestrictedRoute } from 'routs/RestrictedRoute';
+import { PrivateRoute } from 'routs/PrivateRoute';
+import { selectIsRefreshing } from 'redux/auth/authSelectors';
+
+export default function App() {
+  const dispatch = useDispatch();
+  const isRefreshing = useSelector(selectIsRefreshing);
+
+  useEffect(() => {
+    dispatch(refreshUser());
+  }, [dispatch]);
   return (
-    <div
-      style={{
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        fontSize: 40,
-        color: '#010101'
-      }}
-    >
-      React homework template
-    </div>
+    !isRefreshing && (
+        <Routes>
+          <Route path="/" element={<HeaderEl />}>
+            <Route index element={<HomePage />} />
+            <Route
+              path="/register"
+              element={
+                <RestrictedRoute
+                  element={RegisterForm}
+                  redirectTo="/contacts"
+                />
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <RestrictedRoute element={LogIn} redirectTo="/contacts" />
+              }
+            />
+            <Route
+              path="/contacts"
+              element={
+                <PrivateRoute element={ContactBook} redirectTo="/login" />
+              }
+            />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+    )
   );
-};
+}
