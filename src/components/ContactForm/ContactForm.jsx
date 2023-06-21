@@ -1,80 +1,71 @@
-import { Name, Number, Label } from 'components/ContactForm/contactForm.styled';
+import React from 'react';
+import { useState } from 'react';
+import css from './ContactForm.module.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { getContacts, getIsLoading } from 'redux/selectors';
-import { fetchAddContacts } from 'redux/contacts/contactsOperations';
-import { Input, Button } from '@chakra-ui/react';
+import { addContact } from 'redux/contacts/operations';
+import { getContacts } from 'redux/contacts/selectors';
 
-
-export default function ContactForm() {
-  const contactsList = useSelector(getContacts);
-
-  const { isLoading } = useSelector(getIsLoading);
-
+export const ContactForm = () => {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
   const dispatch = useDispatch();
+  const items = useSelector(getContacts);
 
-  const handleSubmit = e => {
+  const handleChangeName = e => {
+    const { value } = e.target;
+    setName(value);
+  };
+
+  const handleChangeNumber = e => {
+    const { value } = e.target;
+    setNumber(value);
+  };
+
+  const handleFormSubmit = e => {
     e.preventDefault();
-    const form = e.target;
-    const name = form.elements.name.value;
-    const number = form.elements.number.value;
-
-    if (contactsList.find(contacts => contacts.number === number)) {
-      alert(`${number} is already in contacts.`);
-      return form.reset();
-    }
-
-    if (
-      contactsList.find(
-        contacts =>
-          contacts.name.toLocaleLowerCase() === name.toLocaleLowerCase()
-      )
-    ) {
+    const contactsLists = [...items];
+    if (contactsLists.findIndex(contact => name === contact.name) !== -1) {
       alert(`${name} is already in contacts.`);
-      return form.reset();
+    } else {
+      dispatch(addContact({ name, number }));
     }
-    const contact = {
-      name: name,
-      number: number,
-    };
-
-    dispatch(fetchAddContacts(contact));
-    form.reset();
+    setName('');
+    setNumber('');
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Phonebook</h2>
-      <Label>
-        <Name>Name</Name>
-        <Input
+    <form className={css.form} onSubmit={handleFormSubmit}>
+      <label className={css.formLabel}>
+        Name
+        <input
+          className={css.formName}
           type="text"
           name="name"
           pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
           required
+          placeholder="Enter name"
+          value={name}
+          onChange={handleChangeName}
         />
-      </Label>
-      <br />
-      <Label>
-        <Number>Number</Number>
-        <Input
+      </label>
+      <label className={css.formLabel}>
+        Number
+        <input
+          className={css.formNumber}
           type="tel"
           name="number"
           pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
           title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
           required
+          placeholder="Enter phone number"
+          value={number}
+          onChange={handleChangeNumber}
         />
-      </Label>
-      <Button
-        isLoading={isLoading}
-        loadingText="Submitting"
-        colorScheme="green"
-        variant="outline"
-        type="submit"
-        
-      >
+      </label>
+      <button className={css.formBtn} type="submit">
         Add contact
-      </Button>
+      </button>
     </form>
   );
-}
+};

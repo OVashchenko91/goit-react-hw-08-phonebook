@@ -1,79 +1,42 @@
-import { Ul, Span, Item } from 'components/ContactList/contactList.styled';
-import PropTypes from 'prop-types';
-import { useSelector, useDispatch } from 'react-redux';
-import { useEffect } from 'react';
-import {
-  fetchContacts,
-  fetchContactsDelete,
-} from 'redux/contacts/contactsOperations';
-import { getFilter, getContacts, getIsLoading } from 'redux/selectors';
-import { Button } from '@chakra-ui/react';
+import { useDispatch, useSelector } from 'react-redux';
+import { delContact } from 'redux/contacts/operations';
+import { getContacts, getFilter } from 'redux/contacts/selectors';
+import css from './ContactList.module.css';
 
-export const ContactList = () => {
-  const filterValue = useSelector(getFilter);
-
-  const dispatch = useDispatch();
-  const contacts = useSelector(getContacts);
-
-  const { isLoading } = useSelector(getIsLoading);
-
-  useEffect(() => {
-    dispatch(fetchContacts());
-  }, [dispatch]);
-
-  const getVisibleList = () => {
-    const normalizedFilter = filterValue.toLowerCase();
-    return contacts?.filter(list =>
-      list.name.toLowerCase().includes(normalizedFilter)
-    );
-  };
-
-  const visibleList = getVisibleList();
-
-  return (
-    <>
-      {contacts && (
-        <Ul>
-          {visibleList.map(({ name, number, id }) => (
-            <Item key={id}>
-              <Span>
-                {name}: {number}
-              </Span>
-              {/* <button
-                type="button"
-                onClick={() => {
-                  dispatch(fetchContactsDelete(id));
-                }}
-                disabled={isLoading}
-              >
-                delete
-              </button> */}
-              <Button
-                onClick={() => {
-                  dispatch(fetchContactsDelete(id));
-                }}
-                isLoading={isLoading}
-                loadingText="Submitting"
-                colorScheme="red"
-                variant="outline"
-                size="xs"
-              >
-                Delete
-              </Button>
-            </Item>
-          ))}
-        </Ul>
-      )}
-    </>
-  );
+const getVisibleContacts = (contacts, filter) => {
+  if (!filter) {
+    return contacts;
+  } else {
+    return contacts.filter(contact => {
+      return contact.name.toLowerCase().includes(filter.toLowerCase());
+    });
+  }
 };
 
-ContactList.propTypes = {
-  events: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      number: PropTypes.string.isRequired,
-    })
-  ),
+export const ContactList = () => {
+  const contacts = useSelector(getContacts);
+  const filter = useSelector(getFilter);
+  const visibleContacts = getVisibleContacts(contacts, filter);
+
+  const dispatch = useDispatch();
+  const handleDelete = id => dispatch(delContact(id));
+
+  return (
+    <div className={css.wraperContactList}>
+      <ul className={css.contactList}>
+        {visibleContacts.map((contact, id) => (
+          <li key={id} className={css.contactListItem}>
+            {contact.name}: {contact.number}
+            <button
+              type="button"
+              className={css.contactListItemBtn}
+              onClick={() => handleDelete(contact.id)}
+            >
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 };

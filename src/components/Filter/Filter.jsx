@@ -1,22 +1,27 @@
-import { Input } from '@chakra-ui/react';
-import { FilterEl } from 'components/Filter/filter.styled'
-import { useDispatch } from 'react-redux';
-import { filter } from 'redux/filterSlice';
+import css from './Filter.module.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { getFilter } from 'redux/contacts/selectors';
+import { setFilter } from 'redux/contacts/filterSlice';
 
 export const Filter = () => {
-
   const dispatch = useDispatch();
+  const filter = useSelector(getFilter);
 
   const handleChange = e => {
-    const value = e.target.value
-    
-    dispatch(filter(value))
-  }
+    dispatch(setFilter(e.target.value));
+  };
 
   return (
-    <label>
-      <FilterEl>Find contacts by name</FilterEl>
-      <Input type="text" onChange={handleChange} />
-    </label>
+    <div>
+      <label className={css.filterLabel}>Find contacts by Name </label>
+      <input
+        className={css.filterName}
+        type="text"
+        name="filter"
+        placeholder="Enter filter"
+        value={filter}
+        onChange={handleChange}
+      />
+    </div>
   );
 };
